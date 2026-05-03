@@ -9,8 +9,8 @@
 #SBATCH -e logs/train_%j.err
 
 # --- Edit these ---
-CONFIG="configs/pspnet/pspnet_r50-d8_4xb2-40k_cityscapes-512x1024.py"
-WORK_DIR="work_dirs/pspnet_r50_cityscapes"
+CONFIG="configs/ocrnet/ocrnet_r50-d8_4xb4-80k_ade20k-512x512.py"
+WORK_DIR="work_dirs/ocrnet_r50_ade20k"
 # ------------------
 
 module load miniforge
