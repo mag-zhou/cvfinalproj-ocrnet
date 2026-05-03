@@ -15,7 +15,9 @@ WORK_DIR="work_dirs/ocrnet_r50_ade20k_20pct"
 # ------------------
 
 module load miniforge
-source activate mmseg
+conda init bash
+source ~/.bashrc
+conda activate mmseg
 
 mkdir -p logs "$WORK_DIR"
 
