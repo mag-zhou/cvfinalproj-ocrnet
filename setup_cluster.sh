@@ -8,18 +8,19 @@ module load miniforge
 
 # Create conda env (skip if already exists)
 if ! conda env list | grep -q "^mmseg "; then
-    mamba create -n mmseg python=3.12 -y
+    mamba create -n mmseg python=3.11 -y
 fi
 
-source activate mmseg
+source /orcd/software/core/001/pkg/miniforge/25.11.0-0/etc/profile.d/conda.sh
+conda activate mmseg
 
 # Install PyTorch with CUDA 12.1 (compatible with A100/H200/L40S)
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+pip install torch==2.1.0 torchvision==0.16.0 --index-url https://download.pytorch.org/whl/cu121
 
-# Install OpenMMLab dependencies
+# Install OpenMMLab dependencies (pinned to versions with prebuilt wheels for py3.11)
 pip install -U openmim
 mim install mmengine
-mim install "mmcv>=2.0.0"
+mim install "mmcv>=2.0.0,<2.2.0"
 
 # Install mmsegmentation from this repo (editable)
 pip install -v -e .
