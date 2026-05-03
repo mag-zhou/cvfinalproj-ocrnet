@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH -J mmseg_train
 #SBATCH -p mit_normal_gpu
-#SBATCH -A mit_general_gcc
+#SBATCH -A mit_general
 #SBATCH -c 8
 #SBATCH -G 1
 #SBATCH --mem=32G
-#SBATCH -t 12:00:00
+#SBATCH -t 6:00:00
 #SBATCH -o logs/train_%j.out
 #SBATCH -e logs/train_%j.err
 
