@@ -9,8 +9,8 @@
 #SBATCH -e logs/train_%j.err
 
 # --- Edit these ---
-CONFIG="configs/ocrnet/ocrnet_r50-d8_4xb4-80k_ade20k-512x512.py"
-WORK_DIR="work_dirs/ocrnet_r50_ade20k"
+CONFIG="configs/ocrnet/ocrnet_r50-d8_1xb8-40k_ade20k-512x512-20pct.py"
+WORK_DIR="work_dirs/ocrnet_r50_ade20k_20pct"
 # ------------------
 
 module load miniforge
