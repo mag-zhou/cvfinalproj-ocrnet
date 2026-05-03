@@ -1,6 +1,7 @@
 #!/bin/bash
 #SBATCH -J mmseg_train
 #SBATCH -p mit_normal_gpu
+#SBATCH -A mit_general_gcc
 #SBATCH -c 8
 #SBATCH -G 1
 #SBATCH --mem=32G
