@@ -123,15 +123,21 @@ def add_mim_extension():
     else:
         return
 
-    filenames = ['tools', 'configs', 'model-index.yml', 'dataset-index.yml']
+    # (source relative to repo root, destination under mmseg/.mim/)
+    mim_entries = [
+        ('tools', 'tools'),
+        ('configs', 'configs'),
+        ('metadata/model-index.yml', 'model-index.yml'),
+        ('metadata/dataset-index.yml', 'dataset-index.yml'),
+    ]
     repo_path = osp.dirname(__file__)
     mim_path = osp.join(repo_path, 'mmseg', '.mim')
     os.makedirs(mim_path, exist_ok=True)
 
-    for filename in filenames:
-        if osp.exists(filename):
-            src_path = osp.join(repo_path, filename)
-            tar_path = osp.join(mim_path, filename)
+    for src_rel, dest_rel in mim_entries:
+        if osp.exists(osp.join(repo_path, src_rel)):
+            src_path = osp.join(repo_path, src_rel)
+            tar_path = osp.join(mim_path, dest_rel)
 
             if osp.isfile(tar_path) or osp.islink(tar_path):
                 os.remove(tar_path)

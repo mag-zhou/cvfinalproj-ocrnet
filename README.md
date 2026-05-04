@@ -8,6 +8,7 @@ This fork adds scripts for training OCRNet on the MIT Engaging cluster.
 |------|---------|
 | [`mmseg/`](mmseg/) | Library source: training loop, models (including OCRNet), datasets. |
 | [`configs/`](configs/) | Training configs; this fork keeps OCRNet and FCN on ADE20K (20% split) only. |
+| [`metadata/`](metadata/) | `model-index.yml` and `dataset-index.yml` for MIM / dataset tooling (installed into `mmseg/.mim/`). |
 | [`tools/`](tools/) | CLI entry points (`train.py`, `test.py`, etc.). |
 | [`setup_cluster.sh`](setup_cluster.sh), [`train_slurm.sh`](train_slurm.sh), [`train_slurm_fcn.sh`](train_slurm_fcn.sh) | Engaging cluster environment setup and SLURM jobs. |
 | `data/` | Datasets (gitignored). Place ADE20K under `data/ade/` as in step 4. |
