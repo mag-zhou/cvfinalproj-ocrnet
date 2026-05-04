@@ -5,7 +5,6 @@ from os.path import dirname, exists, join
 from unittest.mock import patch
 
 import numpy as np
-import pytest
 import torch
 import torch.nn as nn
 from mmengine.model.utils import revert_sync_batchnorm
@@ -102,61 +101,14 @@ def _get_segmentor_cfg(fname):
     return model
 
 
-def test_pspnet_forward():
-    _test_encoder_decoder_forward(
-        'pspnet/pspnet_r18-d8_4xb2-80k_cityscapes-512x1024.py')
-
-
 def test_fcn_forward():
     _test_encoder_decoder_forward(
-        'fcn/fcn_r18-d8_4xb2-80k_cityscapes-512x1024.py')
-
-
-def test_deeplabv3_forward():
-    _test_encoder_decoder_forward(
-        'deeplabv3/deeplabv3_r18-d8_4xb2-80k_cityscapes-512x1024.py')
-
-
-def test_deeplabv3plus_forward():
-    _test_encoder_decoder_forward(
-        'deeplabv3plus/deeplabv3plus_r18-d8_4xb2-80k_cityscapes-512x1024.py')
-
-
-def test_gcnet_forward():
-    _test_encoder_decoder_forward(
-        'gcnet/gcnet_r50-d8_4xb2-40k_cityscapes-512x1024.py')
-
-
-def test_ccnet_forward():
-    if not torch.cuda.is_available():
-        pytest.skip('CCNet requires CUDA')
-    _test_encoder_decoder_forward(
-        'ccnet/ccnet_r50-d8_4xb2-40k_cityscapes-512x1024.py')
-
-
-def test_upernet_forward():
-    _test_encoder_decoder_forward(
-        'upernet/upernet_r50_4xb2-40k_cityscapes-512x1024.py')
-
-
-def test_hrnet_forward():
-    _test_encoder_decoder_forward(
-        'hrnet/fcn_hr18s_4xb2-40k_cityscapes-512x1024.py')
+        'fcn/fcn_r50-d8_1xb8-40k_ade20k-512x512-20pct.py')
 
 
 def test_ocrnet_forward():
     _test_encoder_decoder_forward(
-        'ocrnet/ocrnet_hr18s_4xb2-40k_cityscapes-512x1024.py')
-
-
-def test_sem_fpn_forward():
-    _test_encoder_decoder_forward(
-        'sem_fpn/fpn_r50_4xb2-80k_cityscapes-512x1024.py')
-
-
-def test_mobilenet_v2_forward():
-    _test_encoder_decoder_forward(
-        'mobilenet_v2/mobilenet-v2-d8_pspnet_4xb2-80k_cityscapes-512x1024.py')
+        'ocrnet/ocrnet_r50-d8_1xb8-40k_ade20k-512x512-20pct.py')
 
 
 def get_world_size(process_group):

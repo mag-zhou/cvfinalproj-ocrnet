@@ -1,8 +1,12 @@
 #!/bin/bash
 # Run this ONCE on the Engaging login node to set up your environment.
-# Usage: bash setup_cluster.sh
+# Usage: bash setup_cluster.sh   (from repository root; path is stable from README)
 
 set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$SCRIPT_DIR"
+cd "$REPO_ROOT"
 
 module load miniforge
 
