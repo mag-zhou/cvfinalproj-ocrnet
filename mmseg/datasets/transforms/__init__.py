@@ -1,4 +1,5 @@
 # Copyright (c) OpenMMLab. All rights reserved.
+from .boundary import LoadBoundaryAnnotations, PackSegBoundaryInputs
 from .formatting import PackSegInputs
 from .loading import (LoadAnnotations, LoadBiomedicalAnnotation,
                       LoadBiomedicalData, LoadBiomedicalImageFromFile,
@@ -17,7 +18,8 @@ from .transforms import (CLAHE, AdjustGamma, Albu, BioMedical3DPad,
 
 # yapf: enable
 __all__ = [
-    'LoadAnnotations', 'RandomCrop', 'BioMedical3DRandomCrop', 'SegRescale',
+    'LoadBoundaryAnnotations', 'PackSegBoundaryInputs', 'LoadAnnotations',
+    'RandomCrop', 'BioMedical3DRandomCrop', 'SegRescale',
     'PhotoMetricDistortion', 'RandomRotate', 'AdjustGamma', 'CLAHE', 'Rerange',
     'RGB2Gray', 'RandomCutOut', 'RandomMosaic', 'PackSegInputs',
     'ResizeToMultiple', 'LoadImageFromNDArray', 'LoadBiomedicalImageFromFile',
