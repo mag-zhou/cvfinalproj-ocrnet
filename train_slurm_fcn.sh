@@ -9,6 +9,10 @@
 #SBATCH -o logs/train_%j.out
 #SBATCH -e logs/train_%j.err
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$SCRIPT_DIR"
+cd "$REPO_ROOT"
+
 CONFIG="configs/fcn/fcn_r50-d8_1xb8-40k_ade20k-512x512-20pct.py"
 WORK_DIR="work_dirs/fcn_r50_ade20k_20pct"
 
