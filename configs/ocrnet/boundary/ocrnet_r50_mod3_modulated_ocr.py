@@ -1,4 +1,4 @@
-# Mod 1: auxiliary boundary head (see mmseg/models/decode_heads/boundary_head.py)
+# Mod 3: temperature-modulated object attention + aux boundary on T branch
 _base_ = [
     '../ocrnet_r50-d8_1xb8-40k_ade20k-512x512-20pct.py',
 ]
@@ -28,27 +28,40 @@ test_pipeline = [
     dict(type='PackSegBoundaryInputs'),
 ]
 
-# Merges into CascadeEncoderDecoder from base config
 model = dict(
-    auxiliary_head=dict(
-        type='BoundaryHead',
-        in_channels=1024,
-        in_index=2,
-        channels=128,
-        num_convs=2,
-        num_classes=2,
-        out_channels=1,
-        dropout_ratio=0.1,
-        norm_cfg=norm_cfg,
-        align_corners=False,
-        loss_decode=dict(
-            type='CrossEntropyLoss',
-            use_sigmoid=True,
-            loss_weight=0.4,
-            class_weight=[8.0],
-            loss_name='loss_ce',
+    decode_head=[
+        dict(
+            type='FCNHead',
+            in_channels=1024,
+            in_index=2,
+            channels=256,
+            num_convs=1,
+            concat_input=False,
+            dropout_ratio=0.1,
+            num_classes=150,
+            norm_cfg=norm_cfg,
+            align_corners=False,
+            loss_decode=dict(
+                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=0.4)),
+        dict(
+            type='OCRBoundaryHead',
+            in_channels=2048,
+            in_index=3,
+            channels=512,
+            ocr_channels=256,
+            dropout_ratio=0.1,
+            num_classes=150,
+            norm_cfg=norm_cfg,
+            align_corners=False,
+            loss_decode=dict(
+                type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0),
+            temp_beta=2.0,
+            temp_min=0.5,
+            temp_max=5.0,
+            boundary_aux_loss_weight=0.2,
         ),
-    ))
+    ],
+)
 
 train_dataloader = dict(
     batch_size=8,

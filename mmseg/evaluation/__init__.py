@@ -1,4 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
-from .metrics import CityscapesMetric, DepthMetric, IoUMetric
+from .metrics import BoundaryFScore, CityscapesMetric, DepthMetric, IoUMetric
 
-__all__ = ['IoUMetric', 'CityscapesMetric', 'DepthMetric']
+__all__ = [
+    'IoUMetric', 'CityscapesMetric', 'DepthMetric', 'BoundaryFScore',
+]

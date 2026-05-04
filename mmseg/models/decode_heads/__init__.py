@@ -1,6 +1,7 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 from .ann_head import ANNHead
 from .boundary_head import BoundaryHead
+from .weighted_ce_heads import WeightedCEFCNHead, WeightedCEOCRHead
 from .apc_head import APCHead
 from .aspp_head import ASPPHead
 from .cc_head import CCHead
@@ -21,6 +22,7 @@ from .lraspp_head import LRASPPHead
 from .mask2former_head import Mask2FormerHead
 from .maskformer_head import MaskFormerHead
 from .nl_head import NLHead
+from .ocr_boundary_head import OCRBoundaryHead
 from .ocr_head import OCRHead
 from .pid_head import PIDHead
 from .point_head import PointHead
@@ -38,9 +40,11 @@ from .uper_head import UPerHead
 from .vpd_depth_head import VPDDepthHead
 
 __all__ = [
-    'BoundaryHead', 'FCNHead', 'PSPHead', 'ASPPHead', 'PSAHead', 'NLHead',
+    'BoundaryHead', 'WeightedCEFCNHead', 'WeightedCEOCRHead', 'FCNHead',
+    'PSPHead', 'ASPPHead', 'PSAHead', 'NLHead',
     'GCHead', 'CCHead',
     'UPerHead', 'DepthwiseSeparableASPPHead', 'ANNHead', 'DAHead', 'OCRHead',
+    'OCRBoundaryHead',
     'EncHead', 'DepthwiseSeparableFCNHead', 'FPNHead', 'EMAHead', 'DNLHead',
     'PointHead', 'APCHead', 'DMHead', 'LRASPPHead', 'SETRUPHead',
     'SETRMLAHead', 'DPTHead', 'SETRMLAHead', 'SegmenterMaskTransformerHead',

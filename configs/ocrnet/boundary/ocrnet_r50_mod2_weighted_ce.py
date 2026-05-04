@@ -1,4 +1,4 @@
-# Mod 1: auxiliary boundary head (see mmseg/models/decode_heads/boundary_head.py)
+# Mod 2: boundary-weighted CE on both cascade heads (see boundary_weighted_ce.py)
 _base_ = [
     '../ocrnet_r50-d8_1xb8-40k_ade20k-512x512-20pct.py',
 ]
@@ -28,27 +28,47 @@ test_pipeline = [
     dict(type='PackSegBoundaryInputs'),
 ]
 
-# Merges into CascadeEncoderDecoder from base config
 model = dict(
-    auxiliary_head=dict(
-        type='BoundaryHead',
-        in_channels=1024,
-        in_index=2,
-        channels=128,
-        num_convs=2,
-        num_classes=2,
-        out_channels=1,
-        dropout_ratio=0.1,
-        norm_cfg=norm_cfg,
-        align_corners=False,
-        loss_decode=dict(
-            type='CrossEntropyLoss',
-            use_sigmoid=True,
-            loss_weight=0.4,
-            class_weight=[8.0],
-            loss_name='loss_ce',
+    decode_head=[
+        dict(
+            type='WeightedCEFCNHead',
+            in_channels=1024,
+            in_index=2,
+            channels=256,
+            num_convs=1,
+            concat_input=False,
+            dropout_ratio=0.1,
+            num_classes=150,
+            norm_cfg=norm_cfg,
+            align_corners=False,
+            loss_decode=dict(
+                type='BoundaryWeightedCrossEntropy',
+                alpha=4.0,
+                sigma=5.0,
+                loss_weight=0.4,
+                loss_name='loss_ce',
+            ),
         ),
-    ))
+        dict(
+            type='WeightedCEOCRHead',
+            in_channels=2048,
+            in_index=3,
+            channels=512,
+            ocr_channels=256,
+            dropout_ratio=0.1,
+            num_classes=150,
+            norm_cfg=norm_cfg,
+            align_corners=False,
+            loss_decode=dict(
+                type='BoundaryWeightedCrossEntropy',
+                alpha=4.0,
+                sigma=5.0,
+                loss_weight=1.0,
+                loss_name='loss_ce',
+            ),
+        ),
+    ],
+)
 
 train_dataloader = dict(
     batch_size=8,
