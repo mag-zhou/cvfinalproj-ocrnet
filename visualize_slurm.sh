@@ -17,7 +17,7 @@ mkdir -p logs report_figures
 
 python visualize_comparison.py \
     --fcn-config configs/fcn/fcn_r50-d8_1xb8-40k_ade20k-512x512-20pct.py \
-    --fcn-ckpt   "work_dirs/fcn_r50_ade20k_20pct/best_mIoU_*.pth" \
+    --fcn-ckpt   work_dirs/fcn_r50_ade20k_20pct/iter_32000.pth \
     --ocr-config configs/ocrnet/ocrnet_r50-d8_1xb8-40k_ade20k-512x512-20pct.py \
     --ocr-ckpt   work_dirs/ocrnet_r50_ade20k_20pct/best_mIoU_iter_36000.pth \
     --num-images 12 \

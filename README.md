@@ -10,7 +10,7 @@ This fork adds scripts for training OCRNet on the MIT Engaging cluster.
 | [`configs/`](configs/) | Training configs; this fork keeps OCRNet and FCN on ADE20K (20% split) only. |
 | [`metadata/`](metadata/) | `model-index.yml` and `dataset-index.yml` for MIM / dataset tooling (installed into `mmseg/.mim/`). |
 | [`tools/`](tools/) | CLI entry points (`train.py`, `test.py`, etc.). |
-| [`setup_cluster.sh`](setup_cluster.sh), [`train_slurm.sh`](train_slurm.sh), [`train_slurm_fcn.sh`](train_slurm_fcn.sh) | Engaging cluster environment setup and SLURM jobs. |
+| [`setup_cluster.sh`](setup_cluster.sh), [`train_slurm_ocr.sh`](train_slurm_ocr.sh), [`train_slurm_fcn.sh`](train_slurm_fcn.sh) | Engaging cluster environment setup and SLURM jobs. |
 | `data/` | Datasets (gitignored). Place ADE20K under `data/ade/` as in step 4. |
 | `work_dirs/`, `logs/` | Checkpoints and job logs (gitignored / created at runtime). |
 
@@ -73,10 +73,10 @@ data/ade/ADEChallengeData2016/
 
 The provided config at `configs/ocrnet/ocrnet_r50-d8_1xb8-40k_ade20k-512x512-20pct.py` trains on the first 20% of ADE20K (4,042 images) with batch size 8, learning rate 0.002, for 40,000 iterations.
 
-Submit the SLURM job:
+Submit the SLURM job for ocrnet:
 
 ```bash
-sbatch train_slurm.sh
+sbatch train_slurm_ocr.sh
 ```
 
 Monitor:
