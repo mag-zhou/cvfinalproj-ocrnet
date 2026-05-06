@@ -169,8 +169,20 @@ class OCRBoundaryHead(OCRHead):
         first = batch_data_samples[0]
         if not hasattr(first, 'gt_boundary') or first.gt_boundary is None:
             return {}
-        targets = torch.stack(
-            [s.gt_boundary.data for s in batch_data_samples], dim=0)
+        # gt_boundary tensors per sample can differ in spatial size because the
+        # SegDataPreProcessor pads gt_sem_seg to crop_size but does not touch
+        # gt_boundary. Pad each tensor to the batch-max H/W before stacking.
+        bds = [s.gt_boundary.data for s in batch_data_samples]
+        max_h = max(b.shape[-2] for b in bds)
+        max_w = max(b.shape[-1] for b in bds)
+        padded = []
+        for b in bds:
+            h, w = b.shape[-2], b.shape[-1]
+            if h == max_h and w == max_w:
+                padded.append(b)
+            else:
+                padded.append(F.pad(b, (0, max_w - w, 0, max_h - h), value=0))
+        targets = torch.stack(padded, dim=0)
         logits = resize(
             aux_logits,
             size=targets.shape[2:],
