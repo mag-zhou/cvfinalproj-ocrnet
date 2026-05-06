@@ -7,10 +7,10 @@ This fork adds scripts for training OCRNet on the MIT Engaging cluster.
 | Path | Purpose |
 |------|---------|
 | [`mmseg/`](mmseg/) | Library source: training loop, models (including OCRNet), datasets. |
-| [`configs/`](configs/) | Training configs; this fork keeps OCRNet and FCN on ADE20K (20% split) only. |
+| [`configs/`](configs/) | Training configs; this fork keeps OCRNet and FCN on ADE20K (20% and 50% splits). |
 | [`metadata/`](metadata/) | `model-index.yml` and `dataset-index.yml` for MIM / dataset tooling (installed into `mmseg/.mim/`). |
 | [`tools/`](tools/) | CLI entry points (`train.py`, `test.py`, etc.). |
-| [`setup_cluster.sh`](setup_cluster.sh), [`train_slurm_ocr.sh`](train_slurm_ocr.sh), [`train_slurm_fcn.sh`](train_slurm_fcn.sh) | Engaging cluster environment setup and SLURM jobs. |
+| [`setup_cluster.sh`](setup_cluster.sh), [`train_slurm_ocr.sh`](train_slurm_ocr.sh), [`train_slurm_fcn.sh`](train_slurm_fcn.sh), [`train_slurm_50pct.sh`](train_slurm_50pct.sh) | Engaging cluster environment setup and SLURM jobs. |
 | `data/` | Datasets (gitignored). Place ADE20K under `data/ade/` as in step 4. |
 | `work_dirs/`, `logs/` | Checkpoints and job logs (gitignored / created at runtime). |
 
@@ -108,6 +108,50 @@ sbatch train_slurm_fcn.sh
 ```
 
 Checkpoints: `work_dirs/fcn_r50_ade20k_20pct/`
+
+## 8. 50% ADE20K experiment (OCRNet)
+
+Config: `configs/ocrnet/ocrnet_r50-d8_1xb8-40k_ade20k-512x512-50pct.py`  
+Hyperparams: 10,105 images, batch size 8, lr 0.004, 40k iterations, checkpoint every 2,000 iters.
+
+Submit the job:
+
+```bash
+git pull origin main   # make sure cluster has latest configs
+sbatch train_slurm_50pct.sh
+```
+
+Monitor:
+
+```bash
+squeue -u $USER                           # check job status
+tail -f logs/train_<JOBID>.out            # live training log
+ls work_dirs/ocrnet_r50_ade20k_50pct/    # checkpoints saved here (last 3 kept)
+```
+
+Estimated training time on an L40S GPU: **~3–4 hours** (same iteration count as 20pct run).
+
+### Resuming if the job times out
+
+The script `train_slurm_50pct.sh` includes automatic resume logic. If the job runs out of time before finishing, simply resubmit the same script — it will detect the last saved checkpoint and continue from there:
+
+```bash
+sbatch train_slurm_50pct.sh
+```
+
+To confirm the new job resumed correctly (rather than starting over):
+
+```bash
+grep "Resumed from" logs/train_<NEW_JOBID>.out
+```
+
+You should see a line like `Resumed from: work_dirs/ocrnet_r50_ade20k_50pct/iter_XXXXX.pth`.
+
+### Checking final results
+
+```bash
+grep "mIoU" work_dirs/ocrnet_r50_ade20k_50pct/*/*.log | tail -20
+```
 
 ---
 
