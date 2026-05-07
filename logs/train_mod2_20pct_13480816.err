@@ -1,0 +1,53 @@
+/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/backbones/resnet.py:431: UserWarning: DeprecationWarning: pretrained is a deprecated, please use "init_cfg" instead
+  warnings.warn('DeprecationWarning: pretrained is a deprecated, '
+/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/engine/hooks/visualization_hook.py:60: UserWarning: The draw is False, it means that the hook for visualization will not take effect. The results will NOT be visualized or stored.
+  warnings.warn('The draw is False, it means that the '
+/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/datasets/transforms/loading.py:84: UserWarning: `reduce_zero_label` will be deprecated, if you would like to ignore the zero label, please set `reduce_zero_label=True` when dataset initialized
+  warnings.warn('`reduce_zero_label` will be deprecated, '
+Traceback (most recent call last):
+  File "/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/tools/train.py", line 104, in <module>
+    main()
+  File "/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/tools/train.py", line 100, in main
+    runner.train()
+  File "/home/janetguo/.conda/envs/mmseg/lib/python3.11/site-packages/mmengine/runner/runner.py", line 1777, in train
+    model = self.train_loop.run()  # type: ignore
+            ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/janetguo/.conda/envs/mmseg/lib/python3.11/site-packages/mmengine/runner/loops.py", line 289, in run
+    self.run_iter(data_batch)
+  File "/home/janetguo/.conda/envs/mmseg/lib/python3.11/site-packages/mmengine/runner/loops.py", line 313, in run_iter
+    outputs = self.runner.model.train_step(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/janetguo/.conda/envs/mmseg/lib/python3.11/site-packages/mmengine/model/base_model/base_model.py", line 114, in train_step
+    losses = self._run_forward(data, mode='loss')  # type: ignore
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/janetguo/.conda/envs/mmseg/lib/python3.11/site-packages/mmengine/model/base_model/base_model.py", line 361, in _run_forward
+    results = self(**data, mode=mode)
+              ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/janetguo/.conda/envs/mmseg/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1518, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/janetguo/.conda/envs/mmseg/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1527, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/segmentors/base.py", line 94, in forward
+    return self.loss(inputs, data_samples)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/segmentors/encoder_decoder.py", line 178, in loss
+    loss_decode = self._decode_head_forward_train(x, data_samples)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/segmentors/cascade_encoder_decoder.py", line 92, in _decode_head_forward_train
+    loss_decode = self.decode_head[0].loss(inputs, data_samples,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/decode_heads/decode_head.py", line 262, in loss
+    losses = self.loss_by_feat(seg_logits, batch_data_samples)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/decode_heads/weighted_ce_heads.py", line 93, in loss_by_feat
+    return loss_by_feat_boundary_weighted(self, seg_logits,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/decode_heads/weighted_ce_heads.py", line 40, in loss_by_feat_boundary_weighted
+    boundary_dist = stack_batch_boundary_dist(batch_data_samples)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/decode_heads/weighted_ce_heads.py", line 30, in stack_batch_boundary_dist
+    stacked = torch.stack(padded, dim=0)
+              ^^^^^
+NameError: name 'torch' is not defined

@@ -1,0 +1,23 @@
+PWD: /orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet
+Python: /home/janetguo/.conda/envs/mmseg/bin/python
+Preflight OK 0.10.7 2.1.0 1.2.2
+mod3 20% checkpoint: work_dirs/ocrnet_r50_mod3_modulated_ocr_20pct/iter_40000.pth
+mod3 50% checkpoint: work_dirs/ocrnet_r50_mod3_modulated_ocr_50pct/iter_40000.pth
+
+Loading mod3 (20%) model...
+Loads checkpoint by local backend from path: work_dirs/ocrnet_r50_mod3_modulated_ocr_20pct/iter_40000.pth
+Loading mod3 (50%) model...
+Loads checkpoint by local backend from path: work_dirs/ocrnet_r50_mod3_modulated_ocr_50pct/iter_40000.pth
+
+Generating figures for 8 images -> my_figures/mod3_20vs50pct/
+
+  ADE_val_00001310 ... done
+  ADE_val_00000229 ... done
+  ADE_val_00000052 ... done
+  ADE_val_00001519 ... done
+  ADE_val_00000564 ... done
+  ADE_val_00000502 ... done
+  ADE_val_00000458 ... done
+  ADE_val_00000286 ... done
+
+All figures saved to ./my_figures/mod3_20vs50pct/
