@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 """Decode heads that pass ``gt_boundary_dist`` into :class:`BoundaryWeightedCrossEntropy`."""
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
