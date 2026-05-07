@@ -1,0 +1,2 @@
+/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/losses/cross_entropy_loss.py:250: UserWarning: Default ``avg_non_ignore`` is False, if you would like to ignore the certain label and average loss over non-ignore labels, which is the same with PyTorch official cross_entropy, set ``avg_non_ignore=True``.
+  warnings.warn(

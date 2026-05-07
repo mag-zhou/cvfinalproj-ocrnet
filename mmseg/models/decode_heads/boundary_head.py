@@ -70,6 +70,9 @@ class BoundaryHead(BaseDecodeHead):
         return self.cls_seg(x)
 
     def _stack_batch_gt(self, batch_data_samples: SampleList) -> Tensor:
+        # gt_boundary tensors per sample can differ in spatial size because
+        # SegDataPreProcessor pads gt_sem_seg to crop_size but does not touch
+        # gt_boundary. Pad each tensor to the batch-max H/W before stacking.
         gts: List[Tensor] = []
         for sample in batch_data_samples:
             assert hasattr(sample, 'gt_boundary') and sample.gt_boundary is not None, (
@@ -77,7 +80,18 @@ class BoundaryHead(BaseDecodeHead):
                 '`SegDataSample` (use LoadBoundaryAnnotations + '
                 'PackSegBoundaryInputs).')
             gts.append(sample.gt_boundary.data)
-        return torch.stack(gts, dim=0)
+        max_h = max(g.shape[-2] for g in gts)
+        max_w = max(g.shape[-1] for g in gts)
+        padded: List[Tensor] = []
+        for g in gts:
+            h, w = g.shape[-2], g.shape[-1]
+            if h == max_h and w == max_w:
+                padded.append(g)
+            else:
+                padded.append(
+                    nn.functional.pad(
+                        g, (0, max_w - w, 0, max_h - h), value=0))
+        return torch.stack(padded, dim=0)
 
     def loss_by_feat(self, seg_logits: Tensor,
                      batch_data_samples: SampleList) -> dict:

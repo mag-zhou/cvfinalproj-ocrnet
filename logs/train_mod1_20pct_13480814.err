@@ -1,0 +1,10 @@
+/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/backbones/resnet.py:431: UserWarning: DeprecationWarning: pretrained is a deprecated, please use "init_cfg" instead
+  warnings.warn('DeprecationWarning: pretrained is a deprecated, '
+/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/losses/cross_entropy_loss.py:250: UserWarning: Default ``avg_non_ignore`` is False, if you would like to ignore the certain label and average loss over non-ignore labels, which is the same with PyTorch official cross_entropy, set ``avg_non_ignore=True``.
+  warnings.warn(
+/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/models/decode_heads/decode_head.py:136: UserWarning: threshold is not defined for binary, and defaultsto 0.3
+  warnings.warn('threshold is not defined for binary, and defaults'
+/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/engine/hooks/visualization_hook.py:60: UserWarning: The draw is False, it means that the hook for visualization will not take effect. The results will NOT be visualized or stored.
+  warnings.warn('The draw is False, it means that the '
+/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet/mmseg/datasets/transforms/loading.py:84: UserWarning: `reduce_zero_label` will be deprecated, if you would like to ignore the zero label, please set `reduce_zero_label=True` when dataset initialized
+  warnings.warn('`reduce_zero_label` will be deprecated, '

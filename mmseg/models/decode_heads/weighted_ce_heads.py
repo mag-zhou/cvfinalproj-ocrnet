@@ -14,8 +14,20 @@ from .ocr_head import OCRHead
 
 
 def stack_batch_boundary_dist(batch_data_samples: SampleList) -> Tensor:
-    stacked = torch.stack(
-        [ds.gt_boundary_dist.data for ds in batch_data_samples], dim=0)
+    # gt_boundary_dist tensors per sample can differ in spatial size because
+    # SegDataPreProcessor pads gt_sem_seg to crop_size but does not touch
+    # gt_boundary_dist. Pad each tensor to the batch-max H/W before stacking.
+    dists = [ds.gt_boundary_dist.data for ds in batch_data_samples]
+    max_h = max(d.shape[-2] for d in dists)
+    max_w = max(d.shape[-1] for d in dists)
+    padded = []
+    for d in dists:
+        h, w = d.shape[-2], d.shape[-1]
+        if h == max_h and w == max_w:
+            padded.append(d)
+        else:
+            padded.append(F.pad(d, (0, max_w - w, 0, max_h - h), value=0))
+    stacked = torch.stack(padded, dim=0)
     if stacked.dim() == 4 and stacked.size(1) == 1:
         stacked = stacked.squeeze(1)
     return stacked
