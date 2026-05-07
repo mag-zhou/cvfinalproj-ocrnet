@@ -12,6 +12,8 @@
 #   OUTPUT              default work_dirs/segfix_refined_baseline_50pct
 #   BOUNDARY_THRESH     default 0.5
 #SBATCH -J segfix_refine
+#SBATCH -p mit_normal_gpu
+#SBATCH -A mit_general
 #SBATCH -c 8
 #SBATCH -G 1
 #SBATCH --mem=32G
@@ -21,18 +23,16 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-cd "$REPO_ROOT"
-
-PYTHON_BIN="${PYTHON_BIN:-python}"
+module load miniforge
+source /orcd/software/core/001/pkg/miniforge/25.11.0-0/etc/profile.d/conda.sh
+conda activate mmseg
 
 export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 export OPENCV_OPENCL_RUNTIME=disabled
-export PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}"
+export PYTHONPATH="$(pwd):${PYTHONPATH:-}"
 
 mkdir -p logs
 
@@ -45,7 +45,8 @@ OFFSET_CONFIG="${OFFSET_CONFIG:-segfix/configs/segfix_r18_ade20k_50pct.py}"
 OUTPUT="${OUTPUT:-work_dirs/segfix_refined_baseline_50pct}"
 BOUNDARY_THRESH="${BOUNDARY_THRESH:-0.5}"
 
-echo "REPO_ROOT         : $REPO_ROOT"
+echo "PWD               : $(pwd)"
+echo "Python            : $(which python)"
 echo "Seg config        : $SEG_CONFIG"
 echo "Seg checkpoint    : $SEG_CHECKPOINT"
 echo "Offset config     : $OFFSET_CONFIG"
@@ -53,7 +54,7 @@ echo "Offset checkpoint : $OFFSET_CHECKPOINT"
 echo "Output            : $OUTPUT"
 echo "Boundary thresh   : $BOUNDARY_THRESH"
 
-"$PYTHON_BIN" segfix/refine.py \
+python segfix/refine.py \
     --seg-config        "$SEG_CONFIG" \
     --seg-checkpoint    "$SEG_CHECKPOINT" \
     --offset-config     "$OFFSET_CONFIG" \

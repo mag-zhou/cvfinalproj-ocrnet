@@ -6,6 +6,8 @@
 # override the auto-detected defaults if needed. SLURM directives are kept
 # but harmless if you `bash` this script directly instead of `sbatch`-ing it.
 #SBATCH -J segfix_50pct
+#SBATCH -p mit_normal_gpu
+#SBATCH -A mit_general
 #SBATCH -c 8
 #SBATCH -G 1
 #SBATCH --mem=32G
@@ -15,31 +17,28 @@
 
 set -euo pipefail
 
-# Resolve repo root from this script's location: segfix/slurm/X.sh -> ../..
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-cd "$REPO_ROOT"
-
 CONFIG="segfix/configs/segfix_r18_ade20k_50pct.py"
 WORK_DIR="${WORK_DIR:-work_dirs/segfix_r18_ade20k_50pct}"
 
-PYTHON_BIN="${PYTHON_BIN:-python}"
+module load miniforge
+source /orcd/software/core/001/pkg/miniforge/25.11.0-0/etc/profile.d/conda.sh
+conda activate mmseg
 
 export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 export OPENCV_OPENCL_RUNTIME=disabled
-export PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}"
+export PYTHONPATH="$(pwd):${PYTHONPATH:-}"
 
 mkdir -p logs "$WORK_DIR"
 
-echo "REPO_ROOT : $REPO_ROOT"
-echo "Python    : $PYTHON_BIN"
+echo "PWD       : $(pwd)"
+echo "Python    : $(which python)"
 echo "Config    : $CONFIG"
 echo "Work dir  : $WORK_DIR"
 
-"$PYTHON_BIN" -c "import mmengine, mmcv, mmseg, segfix; print('Preflight OK', mmengine.__version__, mmcv.__version__, mmseg.__version__)"
+python -c "import mmengine, mmcv, mmseg, segfix; print('Preflight OK', mmengine.__version__, mmcv.__version__, mmseg.__version__)"
 
 if [ -f "$WORK_DIR/last_checkpoint" ]; then
     LAST="$(cat "$WORK_DIR/last_checkpoint")"
@@ -50,7 +49,7 @@ else
     RESUME_FLAG=""
 fi
 
-"$PYTHON_BIN" tools/train.py "$CONFIG" \
+python tools/train.py "$CONFIG" \
     --work-dir "$WORK_DIR" \
     --launcher none \
     $RESUME_FLAG

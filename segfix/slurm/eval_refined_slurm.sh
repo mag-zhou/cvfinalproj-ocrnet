@@ -6,6 +6,8 @@
 #   GT_DIR        default data/ade/ADEChallengeData2016/annotations/validation
 #   OUTPUT_ROOT   default work_dirs/segfix_refined_baseline_50pct
 #SBATCH -J segfix_eval
+#SBATCH -p mit_normal_gpu
+#SBATCH -A mit_general
 #SBATCH -c 4
 #SBATCH --mem=16G
 #SBATCH -t 1:00:00
@@ -14,12 +16,11 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-cd "$REPO_ROOT"
+module load miniforge
+source /orcd/software/core/001/pkg/miniforge/25.11.0-0/etc/profile.d/conda.sh
+conda activate mmseg
 
-PYTHON_BIN="${PYTHON_BIN:-python}"
-export PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}"
+export PYTHONPATH="$(pwd):${PYTHONPATH:-}"
 
 mkdir -p logs
 
@@ -27,14 +28,14 @@ GT_DIR="${GT_DIR:-data/ade/ADEChallengeData2016/annotations/validation}"
 OUTPUT_ROOT="${OUTPUT_ROOT:-work_dirs/segfix_refined_baseline_50pct}"
 
 echo "==== refined predictions ===="
-"$PYTHON_BIN" segfix/eval_refined.py \
+python segfix/eval_refined.py \
     --pred-dir "$OUTPUT_ROOT/predictions" \
     --gt-dir   "$GT_DIR"
 
 if [ -d "$OUTPUT_ROOT/predictions_baseline" ]; then
     echo ""
     echo "==== baseline (un-refined) ===="
-    "$PYTHON_BIN" segfix/eval_refined.py \
+    python segfix/eval_refined.py \
         --pred-dir "$OUTPUT_ROOT/predictions_baseline" \
         --gt-dir   "$GT_DIR"
 fi
