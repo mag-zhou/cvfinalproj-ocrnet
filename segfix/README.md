@@ -1,4 +1,8 @@
-# SegFix on OCRNet (ADE20K 20%)
+# SegFix on OCRNet (ADE20K 50%)
+
+> **Friend running this on another GPU?** Skip this README and read
+> [`INSTRUCTIONS.md`](./INSTRUCTIONS.md) — same flow but as a copy-paste
+> runbook with no design discussion.
 
 SegFix as the 5th condition in the boundary-experiments series:
 
@@ -14,42 +18,38 @@ Everything SegFix-specific is contained in this folder.
 
 | File | Phase | Role |
 |---|---|---|
+| `INSTRUCTIONS.md` | runbook | Friend-facing copy-paste workflow. |
 | `offset_utils.py` | shared | `boundary_mask_from_seg`, `offsets_from_seg` (numpy/cv2). |
-| `gen_offset_gt.py` | 1 (sanity) | Precompute / visualize offsets to disk. **Not used by training.** |
+| `gen_offset_gt.py` | 1 (sanity) | Visualize / precompute offsets. **Not used by training.** |
 | `transforms.py` | 2 | `ComputeOffsetsFromSeg` + `PackSegFixInputs`. Online GT generation. |
 | `model.py` | 2 | `SegFixOffsetModel` (ResNet-18 backbone + boundary + offset heads). |
 | `metric.py` | 2 (val) | `SegFixOffsetMetric` -- diagnostic boundary F1 & EE during training. |
-| `configs/segfix_r18_ade20k_20pct.py` | 2 | Training config. |
-| `slurm/train_slurm_segfix_20pct.sh` | 3 | Slurm train. ~2h on 1 GPU. |
+| `configs/segfix_r18_ade20k_50pct.py` | 2 | Training config. |
+| `slurm/train_slurm_segfix_50pct.sh` | 3 | Optional SLURM wrapper for train. |
 | `refine.py` | 4 | Standalone refinement: baseline OCRNet + SegFix offsets -> refined PNGs. |
-| `slurm/refine_slurm.sh` | 4 | Slurm wrapper for `refine.py`. |
+| `slurm/refine_slurm.sh` | 4 | Optional SLURM wrapper for `refine.py`. |
 | `eval_refined.py` | 5 | Standalone mIoU + boundary F1 over a directory of predictions. |
-| `slurm/eval_refined_slurm.sh` | 5 | Evaluates both refined and un-refined preds with the same code. |
+| `slurm/eval_refined_slurm.sh` | 5 | Optional SLURM wrapper for `eval_refined.py`. |
 
 ## Key design decision (read this)
 
-**Offsets are computed online from the augmented seg map**, not loaded from
-disk. The plan's Phase 1 script (`gen_offset_gt.py`) is kept as a
+**Offsets are computed online from the augmented seg map**, not loaded
+from disk. The plan's Phase 1 script (`gen_offset_gt.py`) is kept as a
 sanity-check / visualization tool, but training does not depend on its
 output.
 
 Why? Offset is a vector field. The standard mmseg geometric augmentations
 (`RandomResize`, `RandomCrop`, `RandomFlip`) operate on scalar arrays via
-`seg_fields`; they don't know that horizontal flip needs to negate dx, or
-that resize needs to scale magnitudes. Hooking into them would require
-custom subclasses or monkey-patching, both fragile. Recomputing the offset
-from the (already-augmented) seg map is exactly equivalent, runs ~tens of
-ms in the dataloader workers, and cannot drift out of sync with the seg
-map.
+`seg_fields`; they don't know that horizontal flip needs to negate dx,
+or that resize needs to scale magnitudes. Hooking into them would
+require custom subclasses or monkey-patching, both fragile. Recomputing
+the offset from the (already-augmented) seg map is exactly equivalent,
+runs ~tens of ms in the dataloader workers, and cannot drift out of sync
+with the seg map.
 
-If you ever want to switch to disk-cached offsets (faster IO at the cost of
-larger storage and the geometric headache), the entry point is
-`ComputeOffsetsFromSeg` in `transforms.py` -- replace it with a
-`LoadOffsetAnnotations` + per-augmentation vector hooks.
-
-The boundary mask used for the BCE target is also computed online (same 8-
-neighbor disagreement rule as `tools/preprocess/gen_boundary_gt.py` and as
-`mmseg/evaluation/metrics/boundary_metric.py`). Consistent everywhere.
+The boundary mask used for the BCE target is also computed online (same
+8-neighbor disagreement rule as `tools/preprocess/gen_boundary_gt.py` and
+as `mmseg/evaluation/metrics/boundary_metric.py`). Consistent everywhere.
 
 ## Algorithm cross-check (from the plan)
 
@@ -65,97 +65,43 @@ For each class c in label L:
   For each pixel of class c:
     Look at D_c in a (kernel_size x kernel_size) window;
     offset (dy, dx) = (i*-i, j*-j) for the argmax location.
+  Then zero out offsets in deep interior (>kernel_size/2 from any
+  boundary) so visualization matches the plan's expectation.
 ```
 
-**Verification step before trusting refinement results:** run
+**Sanity-verified on:**
+- a synthetic 100x100 square: center offset = 0, edge pixels push 8 px
+  inward.
+- a real ADE20K label: median offset 8 px in a 1-px boundary band, 0 in
+  pixels >16 px from any boundary.
 
-```bash
-python segfix/gen_offset_gt.py --visualize --max-images 10
-```
+If you see results inconsistent with that, run
+`python segfix/gen_offset_gt.py --visualize --max-images 10` and look at
+the magnitude / direction PNGs in
+`data/ade/ADEChallengeData2016/offset_viz/` before assuming the model
+architecture is the bug.
 
-and inspect `data/ade/ADEChallengeData2016/offset_viz/training/`:
+## Why class-agnostic refinement?
 
-- magnitude PNG (`*_mag.png`): near zero in interiors, 1-8 px near class
-  boundaries.
-- direction PNG (`*_dir.png`, HSV): boundary regions show coherent
-  direction pointing inward (away from the boundary).
+SegFix doesn't know what class anything is — it only emits a boundary
+mask and a per-pixel offset that says "look here instead". The
+refinement step reads `seg_pred[i + dy, j + dx]` and writes that label
+to `(i, j)` for every predicted boundary pixel. Whether the refinement
+helps depends entirely on whether the seg model already gets the
+**interior** right; if the baseline mispredicts whole regions, SegFix
+won't fix that. It only helps boundary localization.
 
-If those don't look right, **don't proceed to training** -- diff against
-openseg's source first.
-
-## Runbook
-
-Assumes baseline OCRNet checkpoint already exists at
-`work_dirs/ocrnet_r50_ade20k_20pct/iter_40000.pth` (the existing baseline
-trained from `configs/ocrnet/ocrnet_r50-d8_1xb8-40k_ade20k-512x512-20pct.py`
-or the Phase 7 baseline config).
-
-```bash
-# Phase 1 (optional sanity): visual inspection of offset GT.
-sbatch segfix/slurm/gen_offset_viz_slurm.sh
-# After it runs, look at the PNGs in
-#   data/ade/ADEChallengeData2016/offset_viz/training/
-
-# Phase 2-3: train the SegFix offset model. ~2h on H200.
-sbatch segfix/slurm/train_slurm_segfix_20pct.sh
-
-# Phase 4: refine baseline predictions.
-SEG_CHECKPOINT=work_dirs/ocrnet_r50_ade20k_20pct/iter_40000.pth \
-OFFSET_CHECKPOINT=work_dirs/segfix_r18_ade20k_20pct/iter_20000.pth \
-OUTPUT=work_dirs/segfix_refined_baseline \
-sbatch segfix/slurm/refine_slurm.sh
-
-# Phase 5: evaluate both refined and baseline using identical eval code.
-OUTPUT_ROOT=work_dirs/segfix_refined_baseline \
-sbatch segfix/slurm/eval_refined_slurm.sh
-```
-
-## Smoke tests (before sbatching the full train)
-
-```bash
-# (1) Imports register cleanly.
-python -c "import segfix; print('ok')"
-
-# (2) Offset utility produces non-zero offsets near boundaries on a real label.
-python -c "
-import cv2, numpy as np
-from segfix.offset_utils import offsets_from_seg, boundary_mask_from_seg
-seg = cv2.imread('data/ade/ADEChallengeData2016/annotations/training/ADE_train_00000001.png', cv2.IMREAD_UNCHANGED).astype(np.int64)
-seg[seg == 0] = 255  # treat 0 as ignore (matches reduce_zero_label)
-seg[seg != 255] -= 1
-off = offsets_from_seg(seg)
-bd = boundary_mask_from_seg(seg)
-print('offset abs mean (boundary): %.3f' % np.abs(off[bd]).mean())
-print('offset abs mean (interior): %.3f' % np.abs(off[~bd]).mean())
-"
-# Expect: boundary mean clearly > interior mean.
-
-# (3) 2-iter dry-run of the model.
-python tools/train.py segfix/configs/segfix_r18_ade20k_20pct.py \
-    --cfg-options train_dataloader.dataset.indices=4 \
-                  train_dataloader.batch_size=2 \
-                  train_cfg.max_iters=2 \
-                  val_cfg=None 2>&1 | tail -30
-```
+On ADE20K, stuff classes (sky, wall, ceiling) have diffuse boundaries
+and the gain from SegFix is smaller than on Cityscapes thing-classes.
+The original SegFix paper reports +0.5 to +1.5 mIoU on Cityscapes; on
+ADE20K with 50% data, expect somewhat less. Boundary-F1 should move
+more cleanly than mIoU.
 
 ## Hyperparameters worth ablating (cheap, no retraining)
 
-- **`--boundary-thresh`** in `refine.py` (0.3 / 0.5 / 0.7). The plan flags
-  this as a free hyperparameter; sweep it on the same trained model.
-- **`max_offset` / `kernel_size`** in the config: both are tied (radius 8 /
-  side 17). Larger window = larger possible offsets at the cost of more
-  ambiguous training signal. Probably not worth changing unless mIoU
-  *worsens* after refinement.
-
-## Known limitations (from the plan, repeated here so they don't get lost)
-
-1. **Class-agnostic refinement** -- SegFix can only fix boundary
-   localization, not interior misclassification. ADE20K stuff classes
-   (sky, wall, ceiling) have diffuse boundaries; gains there will be
-   smaller than the +0.5 to +1.5 mIoU reported on Cityscapes.
-2. **GT correctness is hidden** -- if the offset algorithm has a bug, the
-   model still trains (offsets are self-consistent within the bug), but
-   refinement may help less or do nothing. Sanity-visualize first.
-3. **`refine.py` requires raw class predictions** -- we run the seg model
-   in `predict` mode and read `pred_sem_seg`; this is the standard mmseg
-   output and matches what `tools/test.py` produces.
+- **`--boundary-thresh`** in `refine.py` (0.3 / 0.5 / 0.7). Each rerun
+  produces a different output dir; eval all of them with the same
+  `eval_refined.py` to pick the best.
+- **`max_offset` / `kernel_size`** in the config: tied (radius = 8 / side
+  = 17). Larger = larger possible offsets at the cost of more ambiguous
+  training signal. Probably not worth changing unless mIoU *worsens*.

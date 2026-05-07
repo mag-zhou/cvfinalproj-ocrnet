@@ -1,9 +1,9 @@
 #!/bin/bash
-# Phase 1 sanity-check: write magnitude + HSV-direction PNGs for ~10 images.
-# Training does NOT use these files; this is purely for visual inspection.
+# OPTIONAL sanity-check: write magnitude + HSV-direction PNGs for ~10
+# training labels. Training does NOT use these files; this is purely for
+# visual inspection ("are the offsets pointing inward and small in
+# interiors?").
 #SBATCH -J segfix_viz
-#SBATCH -p mit_normal
-#SBATCH -A mit_general
 #SBATCH -c 8
 #SBATCH --mem=16G
 #SBATCH -t 0:30:00
@@ -12,11 +12,11 @@
 
 set -euo pipefail
 
-REPO_ROOT="/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 cd "$REPO_ROOT"
 
-PYTHON_BIN="/home/janetguo/.conda/envs/mmseg/bin/python"
-
+PYTHON_BIN="${PYTHON_BIN:-python}"
 export PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}"
 
 mkdir -p logs
