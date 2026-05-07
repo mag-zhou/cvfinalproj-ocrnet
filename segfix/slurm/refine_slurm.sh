@@ -1,8 +1,17 @@
 #!/bin/bash
-# Phase 4: run baseline OCRNet + SegFix offset model, write refined preds.
+# Run the trained baseline OCRNet + trained SegFix offset model on the
+# validation set. Produces two directories of PNG predictions:
+#   $OUTPUT/predictions/           refined (SegFix-applied)
+#   $OUTPUT/predictions_baseline/  un-refined, for apples-to-apples eval
+#
+# Required env vars (set before sbatch / before bash):
+#   SEG_CONFIG          path to the OCRNet baseline config (50pct)
+#   SEG_CHECKPOINT      path to the trained OCRNet baseline .pth
+#   OFFSET_CHECKPOINT   path to the trained SegFix .pth (segfix/configs/segfix_r18_ade20k_50pct.py)
+# Optional:
+#   OUTPUT              default work_dirs/segfix_refined_baseline_50pct
+#   BOUNDARY_THRESH     default 0.5
 #SBATCH -J segfix_refine
-#SBATCH -p mit_normal_gpu
-#SBATCH -A mit_general
 #SBATCH -c 8
 #SBATCH -G 1
 #SBATCH --mem=32G
@@ -12,10 +21,11 @@
 
 set -euo pipefail
 
-REPO_ROOT="/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 cd "$REPO_ROOT"
 
-PYTHON_BIN="/home/janetguo/.conda/envs/mmseg/bin/python"
+PYTHON_BIN="${PYTHON_BIN:-python}"
 
 export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
@@ -26,15 +36,19 @@ export PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}"
 
 mkdir -p logs
 
-# Required: edit the four paths below to point at your trained checkpoints.
-SEG_CONFIG="${SEG_CONFIG:-configs/ocrnet/boundary/ocrnet_r50_baseline_20pct.py}"
-SEG_CHECKPOINT="${SEG_CHECKPOINT:-work_dirs/ocrnet_r50_ade20k_20pct/iter_40000.pth}"
-OFFSET_CONFIG="${OFFSET_CONFIG:-segfix/configs/segfix_r18_ade20k_20pct.py}"
-OFFSET_CHECKPOINT="${OFFSET_CHECKPOINT:-work_dirs/segfix_r18_ade20k_20pct/iter_20000.pth}"
-OUTPUT="${OUTPUT:-work_dirs/segfix_refined_baseline}"
+# Required (no defaults so we fail loudly if not provided)
+: "${SEG_CONFIG:?must set SEG_CONFIG (e.g. configs/ocrnet/.../baseline_50pct.py)}"
+: "${SEG_CHECKPOINT:?must set SEG_CHECKPOINT (path to trained OCRNet .pth)}"
+: "${OFFSET_CHECKPOINT:?must set OFFSET_CHECKPOINT (path to trained SegFix .pth)}"
+
+OFFSET_CONFIG="${OFFSET_CONFIG:-segfix/configs/segfix_r18_ade20k_50pct.py}"
+OUTPUT="${OUTPUT:-work_dirs/segfix_refined_baseline_50pct}"
 BOUNDARY_THRESH="${BOUNDARY_THRESH:-0.5}"
 
+echo "REPO_ROOT         : $REPO_ROOT"
+echo "Seg config        : $SEG_CONFIG"
 echo "Seg checkpoint    : $SEG_CHECKPOINT"
+echo "Offset config     : $OFFSET_CONFIG"
 echo "Offset checkpoint : $OFFSET_CHECKPOINT"
 echo "Output            : $OUTPUT"
 echo "Boundary thresh   : $BOUNDARY_THRESH"

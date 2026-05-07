@@ -1,8 +1,11 @@
 #!/bin/bash
-# Phase 5: standalone mIoU + boundary F-score on refined and baseline preds.
+# Run mIoU + boundary F1 on both the refined and un-refined predictions
+# produced by refine_slurm.sh. Same metric implementation, same edge cases.
+#
+# Optional env vars:
+#   GT_DIR        default data/ade/ADEChallengeData2016/annotations/validation
+#   OUTPUT_ROOT   default work_dirs/segfix_refined_baseline_50pct
 #SBATCH -J segfix_eval
-#SBATCH -p mit_normal
-#SBATCH -A mit_general
 #SBATCH -c 4
 #SBATCH --mem=16G
 #SBATCH -t 1:00:00
@@ -11,17 +14,17 @@
 
 set -euo pipefail
 
-REPO_ROOT="/orcd/scratch/orcd/003/janetguo/cvfinalproj-ocrnet"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="${REPO_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 cd "$REPO_ROOT"
 
-PYTHON_BIN="/home/janetguo/.conda/envs/mmseg/bin/python"
-
+PYTHON_BIN="${PYTHON_BIN:-python}"
 export PYTHONPATH="$REPO_ROOT:${PYTHONPATH:-}"
 
 mkdir -p logs
 
 GT_DIR="${GT_DIR:-data/ade/ADEChallengeData2016/annotations/validation}"
-OUTPUT_ROOT="${OUTPUT_ROOT:-work_dirs/segfix_refined_baseline}"
+OUTPUT_ROOT="${OUTPUT_ROOT:-work_dirs/segfix_refined_baseline_50pct}"
 
 echo "==== refined predictions ===="
 "$PYTHON_BIN" segfix/eval_refined.py \

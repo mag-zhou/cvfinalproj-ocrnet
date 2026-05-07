@@ -1,12 +1,12 @@
-# SegFix offset model: ResNet-18 backbone, ADE20K 20% subset, 20k iters.
+# SegFix offset model: ResNet-18 backbone, ADE20K 50% subset, 20k iters.
 #
-# Inherits:
-#   - the standard ADE20K dataset definition (paths, classes)
-#   - the default mmseg runtime (logger, hooks, env)
+# This is the canonical SegFix training config -- pairs with a 50%-trained
+# OCRNet baseline for refinement. See `segfix/INSTRUCTIONS.md` for the
+# end-to-end runbook.
 #
-# Custom imports load the segfix package so that
-# `SegFixOffsetModel`, `ComputeOffsetsFromSeg`, `PackSegFixInputs`, and
-# `SegFixOffsetMetric` are discoverable in the registries.
+# Custom imports load the segfix package so SegFixOffsetModel,
+# ComputeOffsetsFromSeg, PackSegFixInputs, and SegFixOffsetMetric are all
+# discoverable in the registries.
 
 _base_ = [
     '../../configs/_base_/datasets/ade20k.py',
@@ -17,10 +17,8 @@ custom_imports = dict(imports=['segfix'], allow_failed_imports=False)
 crop_size = (512, 512)
 
 # ---- Pipelines ------------------------------------------------------------
-# We DO NOT load precomputed offsets from disk. ComputeOffsetsFromSeg
-# regenerates the offsets from the augmented gt_seg_map, so that resize /
-# crop / flip semantics are automatically correct. See segfix/transforms.py
-# for the rationale.
+# We compute boundary + offset GT ONLINE from the augmented gt_seg_map (see
+# segfix/transforms.py for the rationale). No precomputed .npy files needed.
 
 train_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -44,7 +42,7 @@ test_pipeline = [
     dict(type='PackSegFixInputs'),
 ]
 
-# ---- Data preprocessor (mean/std + padding handling) ----------------------
+# ---- Data preprocessor ----------------------------------------------------
 data_preprocessor = dict(
     type='SegDataPreProcessor',
     mean=[123.675, 116.28, 103.53],
@@ -83,7 +81,7 @@ model = dict(
     align_corners=False,
 )
 
-# ---- Dataloaders (20% subset to match the rest of the experiments) --------
+# ---- Dataloaders (50% subset = 10105 / 20210 ADE20K training images) ------
 train_dataloader = dict(
     batch_size=16,
     num_workers=4,
@@ -95,7 +93,7 @@ train_dataloader = dict(
         data_prefix=dict(
             img_path='images/training',
             seg_map_path='annotations/training'),
-        indices=4042,
+        indices=10105,
         pipeline=train_pipeline),
 )
 val_dataloader = dict(
@@ -117,10 +115,11 @@ val_evaluator = [dict(type='SegFixOffsetMetric')]
 test_evaluator = val_evaluator
 
 # ---- Optimizer / schedule -------------------------------------------------
-# Plan: SGD lr=0.01, poly schedule, 20k iters.
+# 2x LR bump from the 20pct precedent (0.01 -> 0.02), matching how the
+# mod1/mod2/mod3 50pct configs scaled their LRs.
 optim_wrapper = dict(
     type='OptimWrapper',
-    optimizer=dict(type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0005),
+    optimizer=dict(type='SGD', lr=0.02, momentum=0.9, weight_decay=0.0005),
     clip_grad=None,
 )
 param_scheduler = [
