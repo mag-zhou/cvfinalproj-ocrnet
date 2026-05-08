@@ -1,0 +1,14 @@
+\begin{table}[t]
+\centering
+\caption{Final validation scores on ADE20K val (50\% training data). All values are percentages; higher is better. Iter count in parentheses is the iteration of the final eval.}
+\label{tab:absolute-scores}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Run} & \textbf{aAcc} & \textbf{mIoU} & \textbf{mAcc} & \textbf{mBF$_1^{3}$} & \textbf{mBF$_1^{5}$} & \textbf{mBF$_1^{9}$} \\
+\midrule
+Mod 1: Boundary supervision in gradient updates (80k iters) & 76.50 & 32.30 & 42.89 & 52.59 & 62.21 & 71.97 \\
+Mod 2: Boundary Weighted Segmentation Loss Function (80k iters) & 76.61 & 33.44 & 43.95 & 55.43 & 64.61 & 73.91 \\
+Mod 3: Boundary-modulated OCR attention head (80k iters) & 76.83 & 33.18 & 43.40 & 52.54 & 62.15 & 72.00 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -23,6 +23,7 @@ from .mask2former_head import Mask2FormerHead
 from .maskformer_head import MaskFormerHead
 from .nl_head import NLHead
 from .ocr_boundary_head import OCRBoundaryHead
+from .ocr_cbl_head import OCRCBLHead
 from .ocr_head import OCRHead
 from .pid_head import PIDHead
 from .point_head import PointHead
@@ -44,7 +45,7 @@ __all__ = [
     'PSPHead', 'ASPPHead', 'PSAHead', 'NLHead',
     'GCHead', 'CCHead',
     'UPerHead', 'DepthwiseSeparableASPPHead', 'ANNHead', 'DAHead', 'OCRHead',
-    'OCRBoundaryHead',
+    'OCRBoundaryHead', 'OCRCBLHead',
     'EncHead', 'DepthwiseSeparableFCNHead', 'FPNHead', 'EMAHead', 'DNLHead',
     'PointHead', 'APCHead', 'DMHead', 'LRASPPHead', 'SETRUPHead',
     'SETRMLAHead', 'DPTHead', 'SETRMLAHead', 'SegmenterMaskTransformerHead',
