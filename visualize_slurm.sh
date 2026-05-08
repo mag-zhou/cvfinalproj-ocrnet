@@ -1,25 +1,35 @@
 #!/bin/bash
-#SBATCH -J mmseg_viz
+#SBATCH -J vis_50pct_80k
 #SBATCH -p mit_normal_gpu
 #SBATCH -A mit_general
 #SBATCH -c 4
 #SBATCH -G 1
 #SBATCH --mem=16G
 #SBATCH -t 0:30:00
-#SBATCH -o logs/viz_%j.out
-#SBATCH -e logs/viz_%j.err
+#SBATCH -o logs/visualize_%j.out
+#SBATCH -e logs/visualize_%j.err
+
+set -euo pipefail
 
 module load miniforge
 source /orcd/software/core/001/pkg/miniforge/25.11.0-0/etc/profile.d/conda.sh
 conda activate mmseg
 
-mkdir -p logs report_figures
+export PYTHONPATH="$(pwd):${PYTHONPATH:-}"
+
+mkdir -p logs
+
+OUTPUT_DIR="${OUTPUT_DIR:-report_figures_50pct_80k}"
+NUM_IMAGES="${NUM_IMAGES:-40}"
+SEED="${SEED:-42}"
+
+echo "PWD       : $(pwd)"
+echo "Python    : $(which python)"
+echo "Output    : $OUTPUT_DIR"
+echo "Num imgs  : $NUM_IMAGES"
+echo "Seed      : $SEED"
 
 python visualize_comparison.py \
-    --fcn-config configs/fcn/fcn_r50-d8_1xb8-40k_ade20k-512x512-20pct.py \
-    --fcn-ckpt   work_dirs/fcn_r50_ade20k_20pct/iter_32000.pth \
-    --ocr-config configs/ocrnet/ocrnet_r50-d8_1xb8-40k_ade20k-512x512-20pct.py \
-    --ocr-ckpt   work_dirs/ocrnet_r50_ade20k_20pct/best_mIoU_iter_36000.pth \
-    --num-images 12 \
-    --seed 42 \
-    --output-dir report_figures
+    --num-images "$NUM_IMAGES" \
+    --seed "$SEED" \
+    --output-dir "$OUTPUT_DIR"
