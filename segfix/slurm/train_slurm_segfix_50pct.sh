@@ -8,9 +8,9 @@
 #SBATCH -J segfix_50pct
 #SBATCH -p mit_normal_gpu
 #SBATCH -A mit_general
-#SBATCH -c 8
+#SBATCH -c 16
 #SBATCH -G 1
-#SBATCH --mem=32G
+#SBATCH --mem=48G
 #SBATCH -t 6:00:00
 #SBATCH -o logs/train_segfix_50pct_%j.out
 #SBATCH -e logs/train_segfix_50pct_%j.err

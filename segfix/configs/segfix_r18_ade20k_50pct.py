@@ -84,8 +84,9 @@ model = dict(
 # ---- Dataloaders (50% subset = 10105 / 20210 ADE20K training images) ------
 train_dataloader = dict(
     batch_size=16,
-    num_workers=4,
+    num_workers=12,
     persistent_workers=True,
+    prefetch_factor=4,
     sampler=dict(type='InfiniteSampler', shuffle=True),
     dataset=dict(
         type='ADE20KDataset',
