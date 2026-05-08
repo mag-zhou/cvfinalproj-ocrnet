@@ -90,13 +90,17 @@ def make_figure(img_rgb, gt_col, fcn_col, ocr_col, title, save_path):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--fcn-config', required=True)
-    parser.add_argument('--fcn-ckpt',   required=True,
+    parser.add_argument('--fcn-config',
+                        default='configs/fcn/fcn_r50-d8_1xb8-40k_ade20k-512x512-50pct-ext.py')
+    parser.add_argument('--fcn-ckpt',
+                        default='work_dirs/fcn_r50_ade20k_50pct_ext/iter_40000.pth',
                         help='Path or glob pattern, e.g. "work_dirs/fcn_*/best_mIoU_*.pth"')
-    parser.add_argument('--ocr-config', required=True)
-    parser.add_argument('--ocr-ckpt',   required=True)
+    parser.add_argument('--ocr-config',
+                        default='configs/ocrnet/ocrnet_r50-d8_1xb8-40k_ade20k-512x512-50pct-ext.py')
+    parser.add_argument('--ocr-ckpt',
+                        default='work_dirs/ocrnet_r50_ade20k_50pct_ext/iter_40000.pth')
     parser.add_argument('--data-root',  default='data/ade/ADEChallengeData2016')
-    parser.add_argument('--num-images', type=int, default=8,
+    parser.add_argument('--num-images', type=int, default=40,
                         help='How many val images to sample')
     parser.add_argument('--seed',       type=int, default=42)
     parser.add_argument('--output-dir', default='report_figures')
