@@ -22,7 +22,6 @@ import os
 import random
 from pathlib import Path
 
-import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -150,8 +149,7 @@ def main():
 
         print(f"  {stem} ...", end=' ', flush=True)
 
-        img_bgr = cv2.imread(img_path)
-        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        img_rgb = np.array(Image.open(img_path).convert('RGB'))
         gt_col  = load_gt_colored(ann_path, palette)
 
         with torch.no_grad():
