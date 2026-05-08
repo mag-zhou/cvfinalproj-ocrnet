@@ -123,6 +123,45 @@ python3 tools/train.py configs/ocrnet/boundary/ocrnet_r50_mod3_modulated_ocr.py 
 
 ---
 
+## Phase 5b — Mod 4 (CBL-lite contrastive boundary loss)
+
+**Config:** `configs/ocrnet/boundary/ocrnet_r50_mod4_cbl.py` (or the 50pct/80k variants).
+
+**Checks**
+
+- [ ] Imports resolve: `BoundaryContrastiveLoss` and `OCRCBLHead`.
+- [ ] Unit tests pass (gradient-detach property, all-anchor-skipped case, etc).
+- [ ] Smoke train: log lines include `decode_1.loss_cbl` and `decode_1.cbl_anchor_ratio`.
+- [ ] **Phase 4 Test 3 (early-iter behaviour):** `loss_cbl ~ 0` for the first
+      ~500–2000 iters because most predictions are wrong, so most anchors fail
+      CCAS and get skipped. It should ramp up as the model learns. If it's
+      already large at iter 100, the CCAS check is wrong.
+- [ ] **Phase 4 Test 4 (anchor count sanity):** `cbl_anchor_ratio` (the
+      n_valid_anchors / n_total_anchors ratio) should land in the 0.2–0.7
+      range once training has warmed up. If 0 throughout, no CCAS positives
+      are being found (bug). If always 1.0, CCAS isn't filtering (bug).
+- [ ] **Phase 4 Test 2 (speed):** Iter time should be at most ~30% slower
+      than Mod 2 / Mod 3. If it's 2× or more, the unfold/gather indexing
+      is broken and the loss has fallen back to Python loops; profile.
+
+**Commands**
+
+```bash
+python3 -c "from mmseg.models.losses import BoundaryContrastiveLoss; from mmseg.models.decode_heads import OCRCBLHead; print('ok')"
+
+# Unit tests (CPU-only, fast):
+OMP_NUM_THREADS=1 python3 tests/test_boundary_contrastive.py
+
+# 50-iter smoke train (mirrors Phase 4 Test 1 in the plan):
+python3 tools/train.py configs/ocrnet/boundary/ocrnet_r50_mod4_cbl.py \
+  --cfg-options train_dataloader.dataset.indices=10 train_dataloader.batch_size=2 \
+                train_cfg.max_iters=50 train_cfg.val_interval=100 2>&1 | tail -120
+```
+
+**Expected:** `ok`; unit tests print `All BoundaryContrastiveLoss sanity tests passed.`; smoke-train tail shows `decode_1.loss_cbl` ~ 0 (or very small) with `cbl_anchor_ratio` near 0 because the model hasn't learned anything yet. **Watch for:** NaNs (lower `cbl_weight` or `cbl_margin`); OOM (lower `cbl_max_anchors`).
+
+---
+
 ## Phase 6 — Boundary F-score metric
 
 **Checks**
