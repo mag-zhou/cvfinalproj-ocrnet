@@ -1,0 +1,22 @@
+Activation-map figure legend
+============================================================
+channel reduction : l2
+overlay alpha     : 0.55
+per-row shared norm: False
+
+Checkpoints:
+  Mod 1 : work_dirs/ocrnet_r50_mod1_aux_boundary_50pct/iter_40000.pth
+  Mod 2 : work_dirs/ocrnet_r50_mod2_weighted_ce_50pct_80k/iter_80000.pth
+  Mod 3 : work_dirs/ocrnet_r50_mod3_modulated_ocr_50pct_80k/iter_80000.pth
+
+Rows (top to bottom):
+  1. Backbone layer1 (stride 4)               -- model.backbone -> stage 0 output (ResNetV1c layer1, 256 ch)
+  2. Backbone layer2 (stride 8)               -- model.backbone -> stage 1 output (ResNetV1c layer2, 512 ch)
+  3. Backbone layer3 (dilated)                -- model.backbone -> stage 2 output (ResNetV1c layer3, 1024 ch, dilation=2)
+  4. Backbone layer4 (dilated)                -- model.backbone -> stage 3 output (ResNetV1c layer4, 2048 ch, dilation=4)
+  5. FCN head pre-classifier                  -- model.decode_head[0].convs output (FCN pre-classifier, 256 ch)
+  6. OCR head bottleneck (feats)              -- model.decode_head[1].bottleneck output (OCR query feats, 512 ch)
+  7. OCR head pre-classifier (post object-attn) -- model.decode_head[1].object_context_block output (post object-attn, 512 ch)
+  8. Final pred softmax entropy               -- -sum(p log p) over softmax of model.decode_head[1].cls_seg output, at input resolution
+  9. Auxiliary boundary sigmoid               -- Mod 1: sigmoid(model.auxiliary_head(backbone)). Mod 2: not applicable. Mod 3: sigmoid(model.decode_head[1].aux_boundary_conv).
+  10. Mod 3 temperature T(x)                   -- Mod 3: T(x) = clip(1 + beta * sigmoid(model.decode_head[1].temp_logit_conv), Tmin, Tmax). Not applicable for Mod 1/2.
