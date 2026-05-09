@@ -211,6 +211,12 @@ def run_one_model(model, img_path: str, model_id: str
     try:
         with torch.no_grad():
             result = inference_model(model, img_path)
+            # FCN's auxiliary_head is not invoked during inference (only during
+            # training). Trigger it manually so we can capture aux_fcn_pre.
+            if model_id == 'FCN' and getattr(model, 'auxiliary_head', None) is not None:
+                bb_out = coll.acts.get('backbone')
+                if bb_out is not None:
+                    _ = model.auxiliary_head(bb_out)
     finally:
         coll.close()
     seg_logits = result.seg_logits.data
@@ -235,8 +241,10 @@ def per_layer_heat_for_model(acts: Dict[str, object],
     out['backbone.layer2'] = reduce2d(bb[1], mode=reduce, topk=topk)
     out['backbone.layer3'] = reduce2d(bb[2], mode=reduce, topk=topk)
     out['backbone.layer4'] = reduce2d(bb[3], mode=reduce, topk=topk)
-    out['aux_fcn_pre'] = reduce2d(acts['aux_fcn_pre'], mode=reduce, topk=topk)
-    out['decode_pre'] = reduce2d(acts['decode_pre'], mode=reduce, topk=topk)
+    out['aux_fcn_pre'] = (reduce2d(acts['aux_fcn_pre'], mode=reduce, topk=topk)
+                          if 'aux_fcn_pre' in acts else None)
+    out['decode_pre'] = (reduce2d(acts['decode_pre'], mode=reduce, topk=topk)
+                         if 'decode_pre' in acts else None)
     if model_id == 'OCRNet' and 'ocr_post_attn' in acts:
         out['ocr_post_attn'] = reduce2d(acts['ocr_post_attn'], mode=reduce, topk=topk)
     else:
